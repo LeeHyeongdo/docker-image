@@ -1,0 +1,42 @@
+# -*- coding: utf-8 -*-
+
+import numpy, math, random
+from scipy.stats import skew
+
+
+meanBO = 12.15; stdBO = 1.00; meanDO = 1.00; stdDO = 0.5; meanT = 20.00; stdT = 1.00
+meanK1 = 0.331 * 1.024; stdK1 = 0.1; meanK2 = 0.690 * 1.024; stdK2 = 0.2
+meanCt = -0.2 * meanT + 13.1
+stdCt = math.sqrt(0.2) * stdT
+montecarloRunCount = 2000
+t_list = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0]
+#First order, Monte Carlo
+for type in range(0, 2):
+    for t in t_list:
+        firstorderDO = meanCt - (meanDO * (numpy.exp(-meanK2 * t)) + ((meanBO * meanK1)/(meanK2 - meanK1)) * (numpy.exp(-meanK1 * t)-numpy.exp(-meanK2 * t)))
+        firstorderBt = meanBO * numpy.exp(-meanK1 * t)
+
+        firstorderDOSTD = []
+        firstorderBtSTD = []
+        Dt = []
+        Bt = []
+        for k in range(0, montecarloRunCount):
+            BO = numpy.random.normal(meanBO, stdBO);
+            DO = numpy.random.normal(meanDO, stdDO);
+            T = numpy.random.normal(meanT, stdT);
+            K1 = numpy.random.normal(meanK1, stdK1);
+            K2 = numpy.random.normal(meanK2, stdK2);
+            Ct = numpy.random.normal(meanCt, stdCt);
+
+            # Mu_K1 =
+            # Mu_K2 =
+
+            Bt.append(BO * numpy.exp(-K1 * t))
+            if numpy.isnan(Ct - (DO * (numpy.exp(-K2 * t)) + ((BO * K1)/(K2 - K1)) * (numpy.exp(-K1*t)-numpy.exp(-K2*t)))):
+                continue
+            Dt.append(Ct - (DO * (numpy.exp(-K2 * t)) + ((BO * K1)/(K2 - K1)) * (numpy.exp(-K1*t)-numpy.exp(-K2*t))))
+
+        if type == 0:
+            print('DO t = ', t, 'First order : ', firstorderDO, numpy.std(firstorderDOSTD), 'Monte Carlo (mean,med,std,skew coeff) : ', numpy.mean(Dt), numpy.median(Dt), numpy.std(Dt), skew(Dt))
+        else:
+            print('BOD t = ', t, 'First order : ', firstorderBt, numpy.std(firstorderBtSTD), 'monte Carlo (mean,med,std,skew coeff) : ', numpy.mean(Bt), numpy.median(Bt), numpy.std(Bt), skew(Bt))
